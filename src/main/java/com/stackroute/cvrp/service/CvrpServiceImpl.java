@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.stackroute.cvrp.domain.Location;
 import com.stackroute.cvrp.domain.Logistics;
+import com.stackroute.cvrp.exceptions.IllegalLocationMatrixException;
 import com.stackroute.cvrp.repository.CvrpRepository;
 
 import net.minidev.json.JSONArray;
@@ -21,28 +22,29 @@ import net.minidev.json.parser.JSONParser;
 @Qualifier("CvrpServiceImpl")
 public class CvrpServiceImpl implements CvrpService {
 	RestTemplate restTemplate = new RestTemplate();
-	String url = "http://localhost:8090/api/v1/logistics";
+	String url_logistic = "http://localhost:8090/api/v1/logistics";
 	// MappingJacksonHttpMessageConverter converter = new
 	// MappingJacksonHttpMessageConverter();
 	private CvrpRepository cvrpRepository;
+
 	@Autowired
 	public CvrpServiceImpl(CvrpRepository cvrpRepository) {
-		this.cvrpRepository=cvrpRepository;
+		this.cvrpRepository = cvrpRepository;
 	}
 
 	public Logistics getJson() {
 		Logistics list;
-		list = restTemplate.getForObject(url, Logistics.class);
+		list = restTemplate.getForObject(url_logistic, Logistics.class);
 		return list;
 	}
 
-	public double[][] getDistanceMatrix(Location[] location) {
+	public Double[][] getDistanceMatrix(Location[] location) throws IllegalLocationMatrixException {
 		String url1 = "https://dev.virtualearth.net/REST/v1/Routes/DistanceMatrix?";
 		String origins = "origins=";
 		String destinations = "destinations=";
 		String url2 = "travelMode=driving&key=AhT3nVgSlv14w5u2GLYkCrCJm1VWDkBeEGHpG4JFNb13vgktN7OIJEr-5KZZrZah";
 		String inline = "";
-		double[][] distanceMatrix = new double[location.length][location.length];
+		Double[][] distanceMatrix = new Double[location.length][location.length];
 		for (int i = 0; i < location.length; i++) {
 			for (int j = 0; j < 1; j++) {
 				String str1 = location[i].getOrderLatitude();
@@ -60,16 +62,13 @@ public class CvrpServiceImpl implements CvrpService {
 			conn.setRequestMethod("GET");
 			conn.connect();
 			int responsecode = conn.getResponseCode();
-			// System.out.println("Response code is: " +responsecode);
 			if (responsecode != 200)
-				throw new RuntimeException("HttpResponseCode: " + responsecode);
+				throw new IllegalLocationMatrixException("HttpResponseCode: " + responsecode);
 			else {
 				Scanner sc = new Scanner(url3.openStream());
 				while (sc.hasNext()) {
 					inline += sc.nextLine();
 				}
-				System.out.println("\nJSON Response in String format");
-				System.out.println(inline);
 				sc.close();
 			}
 			@SuppressWarnings("deprecation")
@@ -83,26 +82,26 @@ public class CvrpServiceImpl implements CvrpService {
 			for (int j = 1; j < jsonarr_3.size(); j++) {
 				JSONObject jsonobj_2 = (JSONObject) jsonarr_3.get(j);
 				int str_data1 = ((Long) jsonobj_2.get("destinationIndex")).intValue();
-				System.out.println(str_data1);
+				// System.out.println(str_data1);
 				int str_data2 = ((Long) jsonobj_2.get("originIndex")).intValue();
-				System.out.println(str_data2);
+				// System.out.println(str_data2);
 				Long str_data3 = (Long) jsonobj_2.get("totalWalkDuration");
-				System.out.println(str_data3);
+				// System.out.println(str_data3);
 				try {
 					Double str_data4 = (Double) jsonobj_2.get("travelDistance");
-					System.out.println(str_data4);
-					Double str_data5 = (Double) jsonobj_2.get("travelDuration");
-					System.out.println(str_data5);
+					// System.out.println(str_data4);
+					// Double str_data5 = (Double) jsonobj_2.get("travelDuration");
+					// System.out.println(str_data5);
 					if (str_data1 != str_data2) {
 						distanceMatrix[str_data1][str_data2] = str_data4;
-						distanceMatrix[str_data2][str_data1]=str_data4;}
-					else
-						distanceMatrix[str_data1][str_data1] = 0;
+						distanceMatrix[str_data2][str_data1] = str_data4;
+					} else
+						distanceMatrix[str_data1][str_data1] = null;
 				} catch (Exception e) {
 					Long str_data4 = (Long) jsonobj_2.get("travelDistance");
-					System.out.println(str_data4);
-					Long str_data5 = (Long) jsonobj_2.get("travelDuration");
-					System.out.println(str_data5);
+					// System.out.println(str_data4);
+					// Long str_data5 = (Long) jsonobj_2.get("travelDuration");
+					// System.out.println(str_data5);
 
 				}
 				System.out.println("\n");
@@ -116,4 +115,5 @@ public class CvrpServiceImpl implements CvrpService {
 		}
 		return distanceMatrix;
 	}
+
 }
