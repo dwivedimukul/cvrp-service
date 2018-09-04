@@ -2,20 +2,20 @@ package com.stackroute.cvrp.domain;
 
 public class Slots {
 
-	private String[] slotAvailability;
+	private boolean[] slotAvailability;
 	private String[] slotCost;
 
-	public Slots(String[] slotAvailability, String[] slotCost) {
+	public Slots(boolean[] slotAvailability, String[] slotCost) {
 
 		this.slotAvailability = slotAvailability;
 		this.slotCost = slotCost;
 	}
 
-	public String[] getSlotAvailability() {
+	public boolean[] getSlotAvailability() {
 		return slotAvailability;
 	}
 
-	public void setSlotAvailability(String[] slotAvailability) {
+	public void setSlotAvailability(boolean[] slotAvailability) {
 		this.slotAvailability = slotAvailability;
 	}
 
