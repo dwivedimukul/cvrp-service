@@ -34,6 +34,7 @@ public class CvrpController {
 	public ResponseEntity<?> getDistanceMatrix(@RequestBody Location[] location){
 		try {
 			Double[][] matrix=cvrpService.getDistanceMatrix(location);
+			System.out.println("hello");
 			return new ResponseEntity<Double[][]>(matrix, HttpStatus.CREATED);
 		}
 		catch(IllegalLocationMatrixException e) {
