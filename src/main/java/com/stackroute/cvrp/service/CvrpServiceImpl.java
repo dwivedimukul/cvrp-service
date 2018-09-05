@@ -1,18 +1,30 @@
 package com.stackroute.cvrp.service;
 
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
+
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.OrderComparator.OrderSourceProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.stackroute.cvrp.domain.Location;
-import com.stackroute.cvrp.domain.Logistics;
+import com.stackroute.cvrp.domain.Order;
+import com.stackroute.cvrp.domain.DateLogistics;
+import com.stackroute.cvrp.domain.Slot;
+import com.stackroute.cvrp.domain.Vehicle;
 import com.stackroute.cvrp.exceptions.IllegalLocationMatrixException;
 import com.stackroute.cvrp.repository.CvrpRepository;
+import com.stackroute.cvrp.repository.OrderRepository;
+import com.stackroute.cvrp.repository.SlotRepository;
+import com.stackroute.cvrp.repository.VehicleRepository;
 
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
@@ -26,16 +38,46 @@ public class CvrpServiceImpl implements CvrpService {
 	// MappingJacksonHttpMessageConverter converter = new
 	// MappingJacksonHttpMessageConverter();
 	private CvrpRepository cvrpRepository;
+	private SlotRepository slotRepo;
+	private OrderRepository orderRepository;
+	private VehicleRepository vehicleRepository;
 
 	@Autowired
-	public CvrpServiceImpl(CvrpRepository cvrpRepository) {
+	public CvrpServiceImpl(CvrpRepository cvrpRepository, SlotRepository slotRepo, OrderRepository orderRepository,
+			VehicleRepository vehicleRepository) {
 		this.cvrpRepository = cvrpRepository;
+		this.slotRepo = slotRepo;
+		this.orderRepository=orderRepository;
+		this.vehicleRepository=vehicleRepository;
 	}
 
-	public Logistics getJson() {
-		Logistics list;
-		list = restTemplate.getForObject(url_logistic, Logistics.class);
+	public DateLogistics getJson() {
+		DateLogistics list;
+		list = restTemplate.getForObject(url_logistic, DateLogistics.class);
 		return list;
+	}
+
+//	public Location getLocationByOrder(String orderId) {
+//		
+//
+//	}
+
+	public List<Location> getLocationBySlot(int slotId) {
+
+		Optional<Slot> slotObj=slotRepo.findById(slotId);
+		Order[] orders = null;
+		Location location;
+		List<Location> locations=new ArrayList<>();
+		Slot slot=slotObj.get();
+		Vehicle[] vehicles=slot.getSlotVehicle();
+		for(int i=0;i<vehicles.length;i++) {
+			orders=vehicles[i].getVehicleRoute();
+		}
+		for(int j=0;j<orders.length;j++) {
+			location=orders[j].getOrderLocation();
+			locations.add(location);
+		}
+		return locations;
 	}
 
 	public Double[][] getDistanceMatrix(Location[] location) throws IllegalLocationMatrixException {
@@ -71,7 +113,7 @@ public class CvrpServiceImpl implements CvrpService {
 				}
 				sc.close();
 			}
-			@SuppressWarnings("deprecation")
+
 			JSONParser parse = new JSONParser();
 			JSONObject jobj = (JSONObject) parse.parse(inline);
 			JSONArray jsonarr_1 = (JSONArray) jobj.get("resourceSets");
@@ -115,5 +157,6 @@ public class CvrpServiceImpl implements CvrpService {
 		}
 		return distanceMatrix;
 	}
+	// public
 
 }

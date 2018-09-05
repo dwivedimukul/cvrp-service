@@ -1,14 +1,18 @@
 package com.stackroute.cvrp.domain;
 
+import javax.persistence.Entity;
+
+@Entity
 public class Order {
 
 	private String orderId;
 	private Location orderLocation;
 	private String orderVolume;
+	private String orderDate;
 	private Slots availableSlots;
 	private String selectedSlots;
 
-	public Order(String orderId, Location orderLocation, String orderVolume, Slots availableSlots,
+	public Order(String orderId, Location orderLocation, String orderVolume, String orderDate,Slots availableSlots,
 			String selectedSlots) {
 
 		this.orderId = orderId;
@@ -16,6 +20,8 @@ public class Order {
 		this.orderVolume = orderVolume;
 		this.availableSlots = availableSlots;
 		this.selectedSlots = selectedSlots;
+		this.orderDate=orderDate;
+		
 	}
 
 	public String getOrderId() {
@@ -57,6 +63,14 @@ public class Order {
 	public void setSelectedSlots(String selectedSlots) {
 		this.selectedSlots = selectedSlots;
 	}
+	public String getOrderDate() {
+		return orderDate;
+	}
+
+	public void setOrderDate(String orderDate) {
+		this.orderDate = orderDate;
+	}
+
 	
 
 }
