@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.stackroute.cvrp.domain.Location;
 import com.stackroute.cvrp.domain.Logistics;
+import com.stackroute.cvrp.domain.Slot;
 import com.stackroute.cvrp.exceptions.IllegalLocationMatrixException;
 import com.stackroute.cvrp.repository.CvrpRepository;
 
@@ -35,7 +36,12 @@ public class CvrpServiceImpl implements CvrpService {
 	public Logistics getJson() {
 		Logistics list;
 		list = restTemplate.getForObject(url_logistic, Logistics.class);
+		Slot[] slots=list.getSlots();
+		for(int i=0;i<slots.length;i++) {
+			System.out.println(slots[i].getSlotId());
+		}
 		return list;
+	
 	}
 
 	public Double[][] getDistanceMatrix(Location[] location) throws IllegalLocationMatrixException {
@@ -115,5 +121,164 @@ public class CvrpServiceImpl implements CvrpService {
 		}
 		return distanceMatrix;
 	}
+//	public void TabuSearch(int tabu_horizon, double[][] costMatrix) {
+//
+//		// We use 1-0 exchange move
+//		ArrayList<Order> routeFrom;
+//		ArrayList<Order> routeTo;
+//
+//		int movingNodeDemand = 0;
+//
+//		int vehIndexFrom, vehIndexTo;
+//		double bestNCost, neigthboorCost;
+//
+//		int swapIndexA = -1, swapIndexB = -1, swapRouteFrom = -1, swapRouteTo = -1;
+//
+//		int MAX_ITERATIONS = 200;
+//		int iteration_number = 0;
+//
+//		int dimensionCustomer = costMatrix[1].length;
+//		int tabu_matrix[][] = new int[dimensionCustomer + 1][dimensionCustomer + 1];
+//
+////		BestSolutionCost = this.Cost; // Initial Solution Cost
+//
+//		boolean Termination = false;
+//
+//		while (!Termination) {
+//			iteration_number++;
+//			bestNCost = Double.MAX_VALUE;
+//
+//			for (vehIndexFrom = 0; vehIndexFrom < this.Vehicles.length; vehIndexFrom++) {
+//				RouteFrom = this.Vehicles[VehIndexFrom].Route;
+//				int RoutFromLength = RouteFrom.size();
+//				for (int i = 1; i < RoutFromLength - 1; i++) { // Not possible to move depot!
+//
+//					for (VehIndexTo = 0; VehIndexTo < this.Vehicles.length; VehIndexTo++) {
+//						RouteTo = this.Vehicles[VehIndexTo].Route;
+//						int RouteTolength = RouteTo.size();
+//						for (int j = 0; (j < RouteTolength - 1); j++) {// Not possible to move after last Depot!
+//
+//							MovingNodeDemand = RouteFrom.get(i).demand;
+//
+//							if ((VehIndexFrom == VehIndexTo)
+//									|| this.Vehicles[VehIndexTo].CheckIfFits(MovingNodeDemand)) {
+//								// If we assign to a different route check capacity constrains
+//								// if in the new route is the same no need to check for capacity
+//
+//								if (((VehIndexFrom == VehIndexTo) && ((j == i) || (j == i - 1))) == false) // Not a move
+//																											// that
+//																											// Changes
+//																											// solution
+//																											// cost
+//								{
+//									double MinusCost1 = CostMatrix[RouteFrom.get(i - 1).NodeId][RouteFrom
+//											.get(i).NodeId];
+//									double MinusCost2 = CostMatrix[RouteFrom.get(i).NodeId][RouteFrom
+//											.get(i + 1).NodeId];
+//									double MinusCost3 = CostMatrix[RouteTo.get(j).NodeId][RouteTo.get(j + 1).NodeId];
+//
+//									double AddedCost1 = CostMatrix[RouteFrom.get(i - 1).NodeId][RouteFrom
+//											.get(i + 1).NodeId];
+//									double AddedCost2 = CostMatrix[RouteTo.get(j).NodeId][RouteFrom.get(i).NodeId];
+//									double AddedCost3 = CostMatrix[RouteFrom.get(i).NodeId][RouteTo.get(j + 1).NodeId];
+//
+//									// Check if the move is a Tabu! - If it is Tabu break
+//									if ((TABU_Matrix[RouteFrom.get(i - 1).NodeId][RouteFrom.get(i + 1).NodeId] != 0)
+//											|| (TABU_Matrix[RouteTo.get(j).NodeId][RouteFrom.get(i).NodeId] != 0)
+//											|| (TABU_Matrix[RouteFrom.get(i).NodeId][RouteTo.get(j + 1).NodeId] != 0)) {
+//										break;
+//									}
+//
+//									NeigthboorCost = AddedCost1 + AddedCost2 + AddedCost3 - MinusCost1 - MinusCost2
+//											- MinusCost3;
+//
+//									if (NeigthboorCost < BestNCost) {
+//										BestNCost = NeigthboorCost;
+//										SwapIndexA = i;
+//										SwapIndexB = j;
+//										SwapRouteFrom = VehIndexFrom;
+//										SwapRouteTo = VehIndexTo;
+//									}
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//
+//			for (int o = 0; o < TABU_Matrix[0].length; o++) {
+//				for (int p = 0; p < TABU_Matrix[0].length; p++) {
+//					if (TABU_Matrix[o][p] > 0) {
+//						TABU_Matrix[o][p]--;
+//					}
+//				}
+//			}
+//
+//			RouteFrom = this.Vehicles[SwapRouteFrom].Route;
+//			RouteTo = this.Vehicles[SwapRouteTo].Route;
+//			this.Vehicles[SwapRouteFrom].Route = null;
+//			this.Vehicles[SwapRouteTo].Route = null;
+//
+//			Node SwapNode = RouteFrom.get(SwapIndexA);
+//
+//			int NodeIDBefore = RouteFrom.get(SwapIndexA - 1).NodeId;
+//			int NodeIDAfter = RouteFrom.get(SwapIndexA + 1).NodeId;
+//			int NodeID_F = RouteTo.get(SwapIndexB).NodeId;
+//			int NodeID_G = RouteTo.get(SwapIndexB + 1).NodeId;
+//
+//			Random TabuRan = new Random();
+//			int RendomDelay1 = TabuRan.nextInt(5);
+//			int RendomDelay2 = TabuRan.nextInt(5);
+//			int RendomDelay3 = TabuRan.nextInt(5);
+//
+//			TABU_Matrix[NodeIDBefore][SwapNode.NodeId] = TABU_Horizon + RendomDelay1;
+//			TABU_Matrix[SwapNode.NodeId][NodeIDAfter] = TABU_Horizon + RendomDelay2;
+//			TABU_Matrix[NodeID_F][NodeID_G] = TABU_Horizon + RendomDelay3;
+//
+//			RouteFrom.remove(SwapIndexA);
+//
+//			if (SwapRouteFrom == SwapRouteTo) {
+//				if (SwapIndexA < SwapIndexB) {
+//					RouteTo.add(SwapIndexB, SwapNode);
+//				} else {
+//					RouteTo.add(SwapIndexB + 1, SwapNode);
+//				}
+//			} else {
+//				RouteTo.add(SwapIndexB + 1, SwapNode);
+//			}
+//
+//			this.Vehicles[SwapRouteFrom].Route = RouteFrom;
+//			this.Vehicles[SwapRouteFrom].load -= MovingNodeDemand;
+//
+//			this.Vehicles[SwapRouteTo].Route = RouteTo;
+//			this.Vehicles[SwapRouteTo].load += MovingNodeDemand;
+//
+//			PastSolutions.add(this.Cost);
+//
+//			this.Cost += BestNCost;
+//
+//			if (this.Cost < BestSolutionCost) {
+//				SaveBestSolution();
+//			}
+//
+//			if (iteration_number == MAX_ITERATIONS) {
+//				Termination = true;
+//			}
+//		}
+//
+//		this.Vehicles = VehiclesForBestSolution;
+//		this.Cost = BestSolutionCost;
+//
+//		try {
+//			PrintWriter writer = new PrintWriter("PastSolutionsTabu.txt", "UTF-8");
+//			writer.println("Solutions" + "\t");
+//			for (int i = 0; i < PastSolutions.size(); i++) {
+//				writer.println(PastSolutions.get(i) + "\t");
+//			}
+//			writer.close();
+//		} catch (Exception e) {
+//		}
+//	}
+
 
 }

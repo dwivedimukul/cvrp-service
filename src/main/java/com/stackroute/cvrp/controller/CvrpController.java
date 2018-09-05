@@ -21,7 +21,6 @@ public class CvrpController {
 	private CvrpService cvrpService;
 	@Autowired
 	public CvrpController(CvrpService cvrpService) {
-
 		this.cvrpService=cvrpService;
 	}
 	@GetMapping("/slot")
