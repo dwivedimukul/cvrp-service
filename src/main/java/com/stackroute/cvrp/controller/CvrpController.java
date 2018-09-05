@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stackroute.cvrp.domain.Location;
-import com.stackroute.cvrp.domain.Logistics;
+import com.stackroute.cvrp.domain.DateLogistics;
 import com.stackroute.cvrp.exceptions.IllegalLocationMatrixException;
 import com.stackroute.cvrp.service.CvrpService;
 
@@ -24,10 +24,10 @@ public class CvrpController {
 		this.cvrpService=cvrpService;
 	}
 	@GetMapping("/slot")
-	public ResponseEntity<Logistics> getJson(){
+	public ResponseEntity<DateLogistics> getJson(){
 //		Console.log(this.cvrpService.getJson());
 	System.out.println(this.cvrpService.getJson());
-		return new ResponseEntity<Logistics>(this.cvrpService.getJson(),HttpStatus.OK);
+		return new ResponseEntity<DateLogistics>(this.cvrpService.getJson(),HttpStatus.OK);
 	}
 	@PostMapping(value="/distancematrix",produces= {"application/json"})
 	public ResponseEntity<?> getDistanceMatrix(@RequestBody Location[] location){

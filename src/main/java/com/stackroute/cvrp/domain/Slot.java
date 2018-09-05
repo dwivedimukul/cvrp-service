@@ -19,6 +19,12 @@ public class Slot {
 		this.slotNoOfVehicle = slotNoOfVehicle;
 		this.slotAvailability = slotAvailability;
 		this.slotVehicle = slotVehicle;
+
+	}
+
+	public Slot() {
+		super();
+		// TODO Auto-generated constructor stub
 	}
 
 	public int getSlotId() {

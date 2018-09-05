@@ -1,9 +1,9 @@
 package com.stackroute.cvrp.domain;
 
-public class Logistics {
+public class DateLogistics {
 	private String date;
 	private Slot[] slots;
-	public Logistics(String date,Slot[] slots) {
+	public DateLogistics(String date,Slot[] slots) {
 		
 		this.date = date;
 		this.slots = slots;
