@@ -9,19 +9,29 @@ public class Order {
 	private Location orderLocation;
 	private String orderVolume;
 	private String orderDate;
+	private boolean isRouted;
 	private Slots availableSlots;
 	private String selectedSlots;
 
-	public Order(String orderId, Location orderLocation, String orderVolume, String orderDate,Slots availableSlots,
+	public Order(String orderId, Location orderLocation, String orderVolume, String orderDate,boolean isRouted,Slots availableSlots,
 			String selectedSlots) {
 
 		this.orderId = orderId;
 		this.orderLocation = orderLocation;
 		this.orderVolume = orderVolume;
+		this.isRouted=isRouted;
 		this.availableSlots = availableSlots;
 		this.selectedSlots = selectedSlots;
 		this.orderDate=orderDate;
 		
+	}
+
+	public boolean isRouted() {
+		return isRouted;
+	}
+
+	public void setRouted(boolean isRouted) {
+		this.isRouted = isRouted;
 	}
 
 	public String getOrderId() {
