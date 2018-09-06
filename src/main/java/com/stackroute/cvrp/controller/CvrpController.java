@@ -25,6 +25,7 @@ public class CvrpController {
 	public CvrpController(CvrpService cvrpService) {
 		this.cvrpService=cvrpService;
 	}
+	
 	@GetMapping("/slot")
 	public ResponseEntity<Route> getJson(){
 //		Console.log(this.cvrpService.getJson());
