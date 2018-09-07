@@ -1,15 +1,19 @@
 package com.stackroute.cvrp.service;
 
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
 import com.stackroute.cvrp.domain.DateLogistics;
 import com.stackroute.cvrp.domain.Location;
 import com.stackroute.cvrp.domain.Order;
@@ -21,6 +25,7 @@ import com.stackroute.cvrp.repository.CvrpRepository;
 import com.stackroute.cvrp.repository.OrderRepository;
 import com.stackroute.cvrp.repository.SlotRepository;
 import com.stackroute.cvrp.repository.VehicleRepository;
+
 import net.minidev.json.JSONArray;
 import net.minidev.json.JSONObject;
 import net.minidev.json.parser.JSONParser;
@@ -44,7 +49,9 @@ public class CvrpServiceImpl implements CvrpService {
 	private float vehicleFilledCapacity;
 	private float vehicleTotalCapacity;
 	private List<Order> vehicleRoute;
-	Double cost=0.0;
+	Double distance = 0.0;
+	private double BestSolutionCost;
+	private ArrayList<Double> PastSolutions;
 
 	@Autowired
 	public CvrpServiceImpl(CvrpRepository cvrpRepository, SlotRepository slotRepo, OrderRepository orderRepository,
@@ -92,81 +99,19 @@ public class CvrpServiceImpl implements CvrpService {
 		return slots;
 	}
 
-	// public List<Slot> AddOrderToSlot(Order orderObj) {
-	// List<Slot> list = new ArrayList<>();
-	// List<Order> orderList=new ArrayList<>();
-	// Slot[] slots;
-	// Vehicle[] vehicles;
-	// orderObj=this.getNewOrder();
-	// String newOrderCapacity;
-	// newOrderCapacity=this.getNewOrderVolume();
-	// slots=this.getSlots();
-	// for(int i=0;i<slots.length;i++) {
-	// vehicles=slots[i].getSlotVehicle();
-	// for(int j=0;j<vehicles.length;j++) {
-	// totalSlotCapacity += Float.parseFloat(vehicles[j].getVehicleCapacity());
-	// filledSlotCapacity +=
-	// Float.parseFloat(vehicles[j].getVehicleLoadedCapacity());
-	// }
-	// newFilledCapacity=filledSlotCapacity+Float.parseFloat(newOrderCapacity);
-	// if(newFilledCapacity<=totalSlotCapacity) {
-	//// list.add()
-	// orderList.add(orderObj);
-	//
-	// }
-	// }
-
-	// for (int p = 0; p < dateLogistics.getSlots().length; p++) {
-	//
-	// slots = dateLogistics.getSlots();
-	// vehicles = slots[p].getSlotVehicle();
-	// for (int j = 0; j < vehicles.length; j++) {
-	// totalSlotCapacity += Float.parseFloat(vehicles[j].getVehicleCapacity());
-	// filledSlotCapacity +=
-	// Float.parseFloat(vehicles[j].getVehicleLoadedCapacity());
-	//
-	// }
-	// newCapacity = filledSlotCapacity +
-	// Float.parseFloat(orderObj.getOrderVolume());
-	// if (newCapacity <= totalSlotCapacity) {
-	// list.add(slots[p]);
-	// }
-	// }
-	// return list;
-
-	// }
-	//
-	// public Slot[] getVehicleRoute(List<Slot> list,Order orderObj) {
-	// Vehicle[] vehicle;
-	// Order[] order;
-	// Location location;
-	// double[][] locationMatrix;
-	// for(int i=0;i<list.size();i++) {
-	// vehicle=list.get(i).slotVehicle;
-	// for(int j=0;j<vehicle.length;j++) {
-	// order=vehicle[i].getVehicleRoute();
-	// for(int k=0;k<order.length;k++) {
-	// location=order[k].getOrderLocation();
-	//
-	// }
-	//
-	// }
-	// }
-	//
-	// }
-
 	@Override
 	public List<Location> getAllLocationsBySlot(String slotId) {
-//		Route jsonRouteData = this.getJson();
-//		DateLogistics jsonDateLogisticsData = jsonRouteData.getDataLogistics();
 		Slot[] slots = this.getSlots();
 		Vehicle[] vehicles;
+		String id;
 		List<Order> orders;
 		Location location;
 		List<Location> locations = new ArrayList<>();
 		Location newOrderLocation = this.getNewOrderLocation();
 
 		for (int i = 0; i < slots.length; i++) {
+			id = slots[i].getSlotId();
+			if (slotId == id) {
 			vehicles = slots[i].getSlotVehicle();
 			for (int j = 0; j < vehicles.length; j++) {
 				orders = Arrays.asList(vehicles[j].getVehicleRoute());
@@ -177,28 +122,27 @@ public class CvrpServiceImpl implements CvrpService {
 			}
 
 		}
+		}
 		locations.add(newOrderLocation);
 		return locations;
 	}
-	
-	public List<Order> getAllOrders(String slotId){
-//		Route jsonRouteData = this.getJson();
-//		DateLogistics jsonDateLogisticsData = jsonRouteData.getDataLogistics();
+
+	public List<Order> getAllOrders(String slotId) {
 		Slot[] slots = this.getSlots();
 		Vehicle[] vehicles;
-		List<Order> orders=new ArrayList<>();
+		List<Order> orders = new ArrayList<>();
 		String id;
-	
-		for (int i = 0; i < slots.length; i++) {
-			id=slots[i].getSlotId();
-			if(slotId==id) {
-			vehicles = slots[i].getSlotVehicle();
-			for (int j = 0; j < vehicles.length; j++) {
-				orders = Arrays.asList(vehicles[j].getVehicleRoute());
-			}
 
-		}
-		orders.add(this.getNewOrder());
+		for (int i = 0; i < slots.length; i++) {
+			id = slots[i].getSlotId();
+			if (slotId == id) {
+				vehicles = slots[i].getSlotVehicle();
+				for (int j = 0; j < vehicles.length; j++) {
+					orders = Arrays.asList(vehicles[j].getVehicleRoute());
+				}
+
+			}
+			orders.add(this.getNewOrder());
 		}
 		return orders;
 	}
@@ -273,7 +217,7 @@ public class CvrpServiceImpl implements CvrpService {
 						// System.out.println(str_data5);
 
 					}
-					System.out.println("\n");
+					// System.out.println("\n");
 
 				}
 				conn.disconnect();
@@ -307,21 +251,21 @@ public class CvrpServiceImpl implements CvrpService {
 		}
 		return result;
 	}
-	
+
 	public int getNoOfVehicles(String slotId) {
-		Slot[] slots=this.getSlots();
+		Slot[] slots = this.getSlots();
 		String numberOfVehicles;
-		int numOfVehicles=0;
-		for(int i=0;i<slots.length;i++) {
-			if(slotId==slots[i].getSlotId()) {
-				numberOfVehicles=slots[i].getSlotNoOfVehicle();
-				numOfVehicles=Integer.parseInt(numberOfVehicles);
+		int numOfVehicles = 0;
+		for (int i = 0; i < slots.length; i++) {
+			if (slotId == slots[i].getSlotId()) {
+				numberOfVehicles = slots[i].getSlotNoOfVehicle();
+				numOfVehicles = Integer.parseInt(numberOfVehicles);
 			}
 		}
 		return numOfVehicles;
 	}
 
-//	public List<Order> getVehicleRoute()
+	// public List<Order> getVehicleRoute()
 	public boolean UnassignedOrderExists(Order[] orders) {
 		for (int i = 1; i < orders.length; i++) {
 			if (!orders[i].isRouted())
@@ -329,48 +273,32 @@ public class CvrpServiceImpl implements CvrpService {
 		}
 		return false;
 	}
-//	public void AddOrder(Order order)// Add Customer to Vehicle Route
-//	{
-//		Slot[] slots=this.getSlots();
-//		String numberOfVehicles;
-//		int numOfVehicles=0;
-//		for(int i=0;i<slots.length;i++) {
-//				numberOfVehicles=slots[i].getSlotNoOfVehicle();
-//				numOfVehicles=Integer.parseInt(numberOfVehicles);
-//				for(int j=0;j<numOfVehicles;j++) {
-//					vehicleRoute.add(order);
-//					vehiclesArray[i].setVehicleRoute(vehicleRoute);	
-//			}
-//		}
-////		Route.add(Customer);
-////		this.load += Customer.demand;
-////		this.CurLoc = Customer.NodeId;
-//	}
 
 	public void GreedySolution(Order[] orders, double[][] distanceMatrix) {
 
 		double candCost, endCost;
 		int vehicleIndex = 0;
-		String slotId=null;
+		String slotId = null;
 
 		while (UnassignedOrderExists(orders)) {
 
 			int orderIndex = 0;
 			Order orderObj = null;
 			double minCost = (float) Double.MAX_VALUE;
-			List<Order> ordersList=new ArrayList<>();
-			for(int i=0;i<this.getSlots().length;i++) {
-				slotId=this.getSlots()[i].getSlotId();
+			List<Order> ordersList = new ArrayList<>();
+			for (int i = 0; i < this.getSlots().length; i++) {
+				slotId = this.getSlots()[i].getSlotId();
 			}
-			ordersList=this.getAllOrders(slotId);
-			
-			if((vehiclesArray[vehicleIndex].getVehicleRoute().length)==0) {
+			ordersList = this.getAllOrders(slotId);
+
+			if ((vehiclesArray[vehicleIndex].getVehicleRoute().length) == 0) {
 				vehiclesArray[vehicleIndex].addOrder(orders[0]);
 			}
 			for (int i = 1; i <= ordersList.size(); i++) {
 				if (orders[i].isRouted() == false) {
 					if (this.checkIfFits(orders[i].getOrderVolume())) {
-						candCost = distanceMatrix[Integer.parseInt((vehiclesArray[vehicleIndex].getVehicleCurrentLocation()))][i];
+						candCost = distanceMatrix[Integer
+								.parseInt((vehiclesArray[vehicleIndex].getVehicleCurrentLocation()))][i];
 						if (minCost > candCost) {
 							minCost = candCost;
 							orderIndex = i;
@@ -384,10 +312,12 @@ public class CvrpServiceImpl implements CvrpService {
 				// Not a single Customer Fits
 				if (vehicleIndex + 1 < vehiclesArray.length) // We have more vehicles to assign
 				{
-					if (Integer.parseInt(vehiclesArray[vehicleIndex].getVehicleCurrentLocation()) != 0) {// End this route
-						endCost = distanceMatrix[Integer.parseInt(vehiclesArray[vehicleIndex].getVehicleCurrentLocation())][0];
+					if (Integer.parseInt(vehiclesArray[vehicleIndex].getVehicleCurrentLocation()) != 0) {// End this
+																											// route
+						endCost = distanceMatrix[Integer
+								.parseInt(vehiclesArray[vehicleIndex].getVehicleCurrentLocation())][0];
 						vehiclesArray[vehicleIndex].addOrder(orders[0]);
-						this.cost += endCost;
+						this.distance += endCost;
 					}
 					vehicleIndex = vehicleIndex + 1; // Go to next Vehicle
 				} else // We DO NOT have any more vehicle to assign. The problem is unsolved under
@@ -400,14 +330,225 @@ public class CvrpServiceImpl implements CvrpService {
 			} else {
 				vehiclesArray[vehicleIndex].addOrder(orderObj);// If a fitting Customer is Found
 				orders[orderIndex].setRouted(true);
-				this.cost += minCost;
+				this.distance += minCost;
 			}
 		}
 
 		endCost = distanceMatrix[Integer.parseInt(vehiclesArray[vehicleIndex].getVehicleCurrentLocation())][0];
 		vehiclesArray[vehicleIndex].addOrder(orders[0]);
-		this.cost += endCost;
+		this.distance += endCost;
 
+	}
+
+	public void TabuSearch(int TABU_Horizon, double[][] distanceMatrix) {
+
+		// We use 1-0 exchange move
+		List<Order> RouteFrom = new ArrayList<>();
+		List<Order> RouteTo = new ArrayList<>();
+
+		String MovingNodeDemand = null;
+
+		int VehIndexFrom, VehIndexTo;
+		double BestNCost, NeigthboorCost;
+
+		int SwapIndexA = -1, SwapIndexB = -1, SwapRouteFrom = -1, SwapRouteTo = -1;
+
+		int MAX_ITERATIONS = 200;
+		int iteration_number = 0;
+
+		int DimensionCustomer = distanceMatrix[1].length;
+		int TABU_Matrix[][] = new int[DimensionCustomer + 1][DimensionCustomer + 1];
+
+		String slotId = null;
+		BestSolutionCost = this.distance; // Initial Solution Cost
+		// System.out.println("Best SOlution cost:"+BestSolutionCost);
+
+		boolean Termination = false;
+
+		while (!Termination) {
+			iteration_number++;
+			BestNCost = Double.MAX_VALUE;
+			// System.out.println("Best cost"+BestNCost);
+			for (int i = 0; i < this.getSlots().length; i++) {
+				slotId = this.getSlots()[i].getSlotId();
+
+				for (VehIndexFrom = 0; VehIndexFrom < this.getNoOfVehicles(slotId); VehIndexFrom++) {
+					RouteFrom = Arrays.asList(this.vehicles[VehIndexFrom].getVehicleRoute());
+
+					int RoutFromLength = RouteFrom.size();
+					// System.out.println(RoutFromLength);
+					for (int j = 1; j < RoutFromLength - 1; j++) { // Not possible to move depot!
+
+						for (VehIndexTo = 0; VehIndexTo < this.vehicles.length; VehIndexTo++) {
+							RouteTo = Arrays.asList(this.vehicles[VehIndexTo].getVehicleRoute());
+							int RouteTolength = RouteTo.size();
+							// System.out.println("hey"+RouteTolength);
+							for (int k = 0; (k < RouteTolength - 1); k++) {// Not possible to move after last Depot!
+
+								MovingNodeDemand = RouteFrom.get(i).getOrderVolume();
+
+								if ((VehIndexFrom == VehIndexTo) || this.checkIfFits(MovingNodeDemand)) {
+									// If we assign to a different route check capacity constrains
+									// if in the new route is the same no need to check for capacity
+
+									if (((VehIndexFrom == VehIndexTo) && ((j == i) || (j == i - 1))) == false) // Not a
+																												// move
+																												// that
+																												// Changes
+																												// solution
+																												// cost
+									{ // System.out.println("i "+i);
+										// System.out.println("j "+j);
+										double MinusCost1 = distanceMatrix[Integer
+												.parseInt(RouteFrom.get(i - 1).getOrderId())][Integer
+														.parseInt(RouteFrom.get(i).getOrderId())];
+										// System.out.println("Minus Cost 1 " + i + " " + MinusCost1);
+										double MinusCost2 = distanceMatrix[Integer
+												.parseInt(RouteFrom.get(i).getOrderId())][Integer
+														.parseInt(RouteFrom.get(i + 1).getOrderId())];
+										// System.out.println("Minus Cost 2 " + i + " " + MinusCost2);
+										double MinusCost3 = distanceMatrix[Integer
+												.parseInt(RouteTo.get(j).getOrderId())][Integer
+														.parseInt(RouteTo.get(j + 1).getOrderId())];
+										// System.out.println("Minus Cost 3 " + i + " " + MinusCost3);
+
+										double AddedCost1 = distanceMatrix[Integer
+												.parseInt(RouteFrom.get(i - 1).getOrderId())][Integer
+														.parseInt(RouteFrom.get(i + 1).getOrderId())];
+										// System.out.println("Added Cost 1 " + i + " " + " " + j + AddedCost1);
+										double AddedCost2 = distanceMatrix[Integer
+												.parseInt(RouteTo.get(j).getOrderId())][Integer
+														.parseInt(RouteFrom.get(i).getOrderId())];
+										// System.out.println("Added Cost 2 " + i + " " + " " + j + AddedCost2);
+										double AddedCost3 = distanceMatrix[Integer
+												.parseInt(RouteFrom.get(i).getOrderId())][Integer
+														.parseInt(RouteTo.get(j + 1).getOrderId())];
+										System.out.println("Added Cost 3 " + i + " " + " " + j + AddedCost3);
+
+										// Check if the move is a Tabu! - If it is Tabu break
+										if ((TABU_Matrix[Integer.parseInt(RouteFrom.get(i - 1).getOrderId())][Integer
+												.parseInt(RouteFrom.get(i + 1).getOrderId())] != 0)
+												|| (TABU_Matrix[Integer.parseInt(RouteTo.get(j).getOrderId())][Integer
+														.parseInt(RouteFrom.get(i).getOrderId())] != 0)
+												|| (TABU_Matrix[Integer.parseInt(RouteFrom.get(i).getOrderId())][Integer
+														.parseInt(RouteTo.get(j + 1).getOrderId())] != 0)) {
+											break;
+										}
+
+										NeigthboorCost = AddedCost1 + AddedCost2 + AddedCost3 - MinusCost1 - MinusCost2
+												- MinusCost3;
+										// System.out.println(NeigthboorCost);
+
+										if (NeigthboorCost < BestNCost) {
+											BestNCost = NeigthboorCost;
+											SwapIndexA = i;
+											SwapIndexB = j;
+											SwapRouteFrom = VehIndexFrom;
+											SwapRouteTo = VehIndexTo;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			for (int o = 0; o < TABU_Matrix[0].length; o++) {
+				for (int p = 0; p < TABU_Matrix[0].length; p++) {
+					if (TABU_Matrix[o][p] > 0) {
+						TABU_Matrix[o][p]--;
+					}
+				}
+			}
+
+			RouteFrom = Arrays.asList(this.vehicles[SwapRouteFrom].getVehicleRoute());
+			RouteTo = Arrays.asList(this.vehicles[SwapRouteTo].getVehicleRoute());
+			this.vehicles[SwapRouteFrom].setVehicleRoute(null);
+			this.vehicles[SwapRouteTo].setVehicleRoute(null);
+
+			Order SwapNode = RouteFrom.get(SwapIndexA);
+
+			int NodeIDBefore = Integer.parseInt(RouteFrom.get(SwapIndexA - 1).getOrderId());
+			int NodeIDAfter = Integer.parseInt(RouteFrom.get(SwapIndexA + 1).getOrderId());
+			int NodeID_F = Integer.parseInt(RouteTo.get(SwapIndexB).getOrderId());
+			int NodeID_G = Integer.parseInt(RouteTo.get(SwapIndexB + 1).getOrderId());
+
+			Random TabuRan = new Random();
+			int RendomDelay1 = TabuRan.nextInt(5);
+			int RendomDelay2 = TabuRan.nextInt(5);
+			int RendomDelay3 = TabuRan.nextInt(5);
+
+			TABU_Matrix[NodeIDBefore][Integer.parseInt(SwapNode.getOrderId())] = TABU_Horizon + RendomDelay1;
+			TABU_Matrix[Integer.parseInt(SwapNode.getOrderId())][NodeIDAfter] = TABU_Horizon + RendomDelay2;
+			TABU_Matrix[NodeID_F][NodeID_G] = TABU_Horizon + RendomDelay3;
+
+			RouteFrom.remove(SwapIndexA);
+
+			if (SwapRouteFrom == SwapRouteTo) {
+				if (SwapIndexA < SwapIndexB) {
+					RouteTo.add(SwapIndexB, SwapNode);
+				} else {
+					RouteTo.add(SwapIndexB + 1, SwapNode);
+				}
+			} else {
+				RouteTo.add(SwapIndexB + 1, SwapNode);
+			}
+
+			this.vehicles[SwapRouteFrom].setVehicleRoute(RouteFrom.toArray(new Order[RouteFrom.size()]));
+
+			this.vehicles[SwapRouteFrom].setVehicleLoadedCapacity(
+					Integer.toString(Integer.parseInt(this.vehicles[SwapRouteFrom].getVehicleLoadedCapacity())
+							- Integer.parseInt(MovingNodeDemand)));
+			this.vehicles[SwapRouteTo].setVehicleRoute(RouteTo.toArray(new Order[RouteTo.size()]));
+
+			this.vehicles[SwapRouteTo].setVehicleLoadedCapacity(
+					Integer.toString(Integer.parseInt(this.vehicles[SwapRouteTo].getVehicleLoadedCapacity())
+							- Integer.parseInt(MovingNodeDemand)));
+
+			PastSolutions.add(this.distance);
+
+			this.distance += BestNCost;
+
+			if (this.distance < BestSolutionCost) {
+				saveBestSolution();
+			}
+
+			if (iteration_number == MAX_ITERATIONS) {
+				Termination = true;
+			}
+		}
+
+		this.vehicles = vehiclesArray;
+		this.distance = BestSolutionCost;
+
+		try {
+			PrintWriter writer = new PrintWriter("PastSolutionsTabu.txt", "UTF-8");
+			writer.println("Solutions" + "\t");
+			for (int i = 0; i < PastSolutions.size(); i++) {
+				writer.println(PastSolutions.get(i) + "\t");
+			}
+			writer.close();
+		} catch (Exception e) {
+		}
+	}
+
+	public void saveBestSolution() {
+		BestSolutionCost = distance;
+		String slotId;
+		for (int i = 0; i < this.getSlots().length; i++) {
+			slotId = this.getSlots()[i].getSlotId();
+			for (int j = 0; j < this.getNoOfVehicles(slotId); j++) {
+				Arrays.asList(vehicles[j].getVehicleRoute()).clear();
+				if (!Arrays.asList(vehicles[j].getVehicleRoute()).isEmpty()) {
+					int RoutSize = Arrays.asList(vehicles[j].getVehicleRoute()).size();
+					for (int k = 0; k < RoutSize; k++) {
+						Order orderObj = Arrays.asList(vehicles[j].getVehicleRoute()).get(k);
+						Arrays.asList(vehiclesArray[j].getVehicleRoute()).add(orderObj);
+					}
+				}
+			}
+		}
 	}
 
 }

@@ -8,7 +8,7 @@ public class Slot {
 	public String slotStartTime;
 	public String slotEndTIme;
 	public String slotNoOfVehicle;
-	public boolean slotAvailability;
+	private String slotCost;
 	public Vehicle[] slotVehicle;
 	public String getSlotId() {
 		return slotId;
@@ -40,33 +40,28 @@ public class Slot {
 	public void setSlotNoOfVehicle(String slotNoOfVehicle) {
 		this.slotNoOfVehicle = slotNoOfVehicle;
 	}
-	public boolean isSlotAvailability() {
-		return slotAvailability;
-	}
+	
+	
 	@Override
 	public String toString() {
 		return "Slot [slotId=" + slotId + ", slotDuration=" + slotDuration + ", slotStartTime=" + slotStartTime
-				+ ", slotEndTIme=" + slotEndTIme + ", slotNoOfVehicle=" + slotNoOfVehicle + ", slotAvailability="
-				+ slotAvailability + ", slotVehicle=" + Arrays.toString(slotVehicle) + "]";
+				+ ", slotEndTIme=" + slotEndTIme + ", slotNoOfVehicle=" + slotNoOfVehicle + ", slotCost=" + slotCost
+				+ ", slotVehicle=" + Arrays.toString(slotVehicle) + "]";
 	}
 	public Slot() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
-	public Slot(String slotId, String slotDuration, String slotStartTime, String slotEndTIme, String slotNoOfVehicle,
-			boolean slotAvailability, Vehicle[] slotVehicle) {
+	public Slot(String slotId, String slotDuration, String slotStartTime, String slotEndTIme, String slotNoOfVehicle, Vehicle[] slotVehicle) {
 		super();
 		this.slotId = slotId;
 		this.slotDuration = slotDuration;
 		this.slotStartTime = slotStartTime;
 		this.slotEndTIme = slotEndTIme;
-		this.slotNoOfVehicle = slotNoOfVehicle;
-		this.slotAvailability = slotAvailability;
+		this.slotNoOfVehicle = slotNoOfVehicle;;
 		this.slotVehicle = slotVehicle;
 	}
-	public void setSlotAvailability(boolean slotAvailability) {
-		this.slotAvailability = slotAvailability;
-	}
+	
 	public Vehicle[] getSlotVehicle() {
 		return slotVehicle;
 	}
