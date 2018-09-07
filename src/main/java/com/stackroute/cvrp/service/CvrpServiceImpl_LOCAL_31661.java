@@ -49,13 +49,9 @@ public class CvrpServiceImpl implements CvrpService {
 	private float vehicleFilledCapacity;
 	private float vehicleTotalCapacity;
 	private List<Order> vehicleRoute;
-<<<<<<< HEAD
 	Double distance = 0.0;
 	private double BestSolutionCost;
 	private ArrayList<Double> PastSolutions;
-=======
-	Double distance=0.0;
->>>>>>> 3bcf04055590f1cc731ae25f7431eab13f53a383
 
 	@Autowired
 	public CvrpServiceImpl(CvrpRepository cvrpRepository, SlotRepository slotRepo, OrderRepository orderRepository,
@@ -278,7 +274,7 @@ public class CvrpServiceImpl implements CvrpService {
 		return false;
 	}
 
-	public Double greedySolution(Order[] orders, double[][] distanceMatrix) {
+	public void GreedySolution(Order[] orders, double[][] distanceMatrix) {
 
 		double candCost, endCost;
 		int vehicleIndex = 0;
@@ -341,7 +337,6 @@ public class CvrpServiceImpl implements CvrpService {
 		endCost = distanceMatrix[Integer.parseInt(vehiclesArray[vehicleIndex].getVehicleCurrentLocation())][0];
 		vehiclesArray[vehicleIndex].addOrder(orders[0]);
 		this.distance += endCost;
-<<<<<<< HEAD
 
 	}
 
@@ -554,11 +549,6 @@ public class CvrpServiceImpl implements CvrpService {
 				}
 			}
 		}
-=======
-
-		return this.distance;
->>>>>>> 3bcf04055590f1cc731ae25f7431eab13f53a383
 	}
-	
 
 }
